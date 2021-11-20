@@ -24,20 +24,21 @@
 
 
 #if 0//DE_PRINTF != 1
-#pragma asm
-?PR?Uart0_ISR?FTDI   SEGMENT CODE 
+	__asm
+	.area CSEG (CODE)
+?PR?Uart0_ISR?FTDI   SEGMENT CODE
 PUBLIC	Uart0_ISR
-#pragma endasm
+	__endasm;
 #endif
 
 #if DE_PRINTF == 1
 BOOL print_pin_change = FALSE;
 #endif
 
-UINT8X Ep0Buffer[DEFAULT_ENDP0_SIZE] _at_(0x0000);   //端点0 OUT&IN缓冲区，必须是偶地址
-UINT8X Ep1Buffer[MAX_PACKET_SIZE]    _at_(0x0040);	//端点1 IN 发送缓冲区
-UINT8X Ep2Buffer[MAX_PACKET_SIZE]    _at_(0x0200);   //端点2 OUT接收缓冲区
-UINT8X RingBuf[128]                  _at_(0x0100);
+UINT8X __at(0x0000) Ep0Buffer[DEFAULT_ENDP0_SIZE];   //端点0 OUT&IN缓冲区，必须是偶地址
+UINT8X __at(0x0040) Ep1Buffer[MAX_PACKET_SIZE]   ;	//端点1 IN 发送缓冲区
+UINT8X __at(0x0200) Ep2Buffer[MAX_PACKET_SIZE]   ;   //端点2 OUT接收缓冲区
+UINT8X __at(0x0100) RingBuf[128]                 ;
 
 USB_SETUP_REQ SetupReqBuf; //暂存Setup包
 PUINT8  pDescr;             //USB配置标志
@@ -64,8 +65,8 @@ volatile BOOL   RTS_read = 0;
 volatile BOOL   Hard_write = FALSE;
 volatile BOOL   EP1_Busy_Flag = FALSE;
 
-sbit RTSPin = P1^0;
-sbit DTRPin = P1^7; 
+SBIT(RTSPin, 0x90, 0);
+SBIT(DTRPin, 0x90, 7); 
 
 #define FTDI_READY  0x07
 #define FTDI_START  0x08
@@ -771,7 +772,7 @@ void EP2Interrupt(void)
 * Function Name  : DeviceInterrupt()
 * Description    : CH559USB中断处理函数
 *******************************************************************************/
-void DeviceInterrupt(void) interrupt INT_NO_USB //using 1 //USB中断服务程序,使用寄存器组1
+void DeviceInterrupt(void) __interrupt(INT_NO_USB) //using 1 //USB中断服务程序,使用寄存器组1
 {
     if ((USB_INT_ST & MASK_UIS_TOKEN) == UIS_TOKEN_SOF)
 	{
@@ -839,7 +840,7 @@ void DeviceInterrupt(void) interrupt INT_NO_USB //using 1 //USB中断服务程�
 
 #if DE_PRINTF != 1
 
-#pragma asm
+	__asm
 
 CSEG	AT	00023H
 	LJMP	Uart0_ISR
@@ -904,13 +905,13 @@ ISR_End:
 	pop ACC
 	pop psw
 	reti
-#pragma endasm
+	__endasm;
 
 #endif
 
 void JumpToBootloader()
 {
-    #pragma asm
+	__asm
     CLR ES
     CLR PS
 
@@ -927,7 +928,7 @@ void JumpToBootloader()
         LJMP 0038H
         SJMP JMP_BL
 
-    #pragma endasm
+	__endasm;
 }
 
 void main()
@@ -939,13 +940,13 @@ void main()
     mInitSTDIO(); //串口0初始化
     PRINT_DEBUG("Start\n");
 
-#pragma asm
+	__asm
     ;ANL P3_MOD_OC, #0EFH 
     ;ORL P3_DIR_PU, #010H 
     ORL P1_MOD_OC, #081H
     ;ANL P1_MOD_OC, #07eH
     ORL P1_MOD_OC, #081H
-#pragma endasm
+	__endasm;
 
     USBDeviceInit(); //USB设备模式初始化
 
