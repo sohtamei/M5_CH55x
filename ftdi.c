@@ -23,7 +23,7 @@
 #endif
 
 
-#if DE_PRINTF != 1
+#if 0//DE_PRINTF != 1
 #pragma asm
 ?PR?Uart0_ISR?FTDI   SEGMENT CODE 
 PUBLIC	Uart0_ISR
